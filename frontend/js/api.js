@@ -3,10 +3,18 @@
  * Centralized Fetch API abstraction handling auth headers, base URL, and error parsing.
  */
 
-// If running directly in browser from file:// or localhost:3000 / localhost:5500, point to FastAPI port 8000
-const API_BASE = window.location.origin.includes(":8000")
-  ? `${window.location.origin}/api`
-  : "http://127.0.0.1:8000/api";
+// Dynamically detect API base URL:
+// 1. If explicit window.API_BASE_URL is set, use it.
+// 2. If running on local Live Server (port 5500 / 3000 / file://), point to local FastAPI on port 8000.
+// 3. In production (Render, etc.), use the same origin where the app is hosted.
+const isLocalDevPort =
+  window.location.port === "5500" ||
+  window.location.port === "3000" ||
+  window.location.protocol === "file:";
+
+const API_BASE = window.API_BASE_URL || (isLocalDevPort
+  ? "http://127.0.0.1:8000/api"
+  : `${window.location.origin}/api`);
 
 const api = {
   getHeaders(includeAuth = true) {

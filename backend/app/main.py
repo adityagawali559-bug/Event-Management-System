@@ -68,10 +68,18 @@ def health_check():
     }
 
 
-# Mount frontend directory for seamless single-server serving
+# Mount frontend directory for seamless single-server serving on Render / production
 FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
 if FRONTEND_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+    css_dir = FRONTEND_DIR / "css"
+    js_dir = FRONTEND_DIR / "js"
+    pages_dir = FRONTEND_DIR / "pages"
+    if css_dir.exists():
+        app.mount("/css", StaticFiles(directory=str(css_dir)), name="css")
+    if js_dir.exists():
+        app.mount("/js", StaticFiles(directory=str(js_dir)), name="js")
+    if pages_dir.exists():
+        app.mount("/pages", StaticFiles(directory=str(pages_dir), html=True), name="pages")
 
     @app.get("/", include_in_schema=False)
     def serve_index():

@@ -16,14 +16,26 @@ class Settings:
     )
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./cemps.db")
+
+    @property
+    def DATABASE_URL(self) -> str:
+        url = os.getenv("DATABASE_URL", "sqlite:///./cemps.db")
+        # Render PostgreSQL URLs typically begin with postgres:// or postgresql://
+        # In SQLAlchemy 2.0, explicitly use postgresql+psycopg2:// driver
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+        elif url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        return url
 
     @property
     def cors_origins(self) -> List[str]:
         raw = os.getenv(
             "CORS_ORIGINS",
-            "http://localhost:3000,http://localhost:5500,http://localhost:8000,http://127.0.0.1:5500,http://127.0.0.1:8000,http://127.0.0.1:3000,null",
+            "http://localhost:3000,http://localhost:5500,http://localhost:8000,http://127.0.0.1:5500,http://127.0.0.1:8000,http://127.0.0.1:3000,null,*",
         )
+        if raw == "*":
+            return ["*"]
         return [origin.strip() for origin in raw.split(",") if origin.strip()]
 
 
