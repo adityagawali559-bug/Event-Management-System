@@ -3,18 +3,47 @@
  * Centralized Fetch API abstraction handling auth headers, base URL, and error parsing.
  */
 
-// Dynamically detect API base URL:
-// 1. If explicit window.API_BASE_URL is set, use it.
-// 2. If running on local Live Server (port 5500 / 3000 / file://), point to local FastAPI on port 8000.
-// 3. In production (Render, etc.), use the same origin where the app is hosted.
-const isLocalDevPort =
-  window.location.port === "5500" ||
-  window.location.port === "3000" ||
-  window.location.protocol === "file:";
+// =============================================================================
+// BACKEND API URL CONFIGURATION
+// =============================================================================
+// If hosting Frontend as a separate Render Static Site, paste your Render
+// Backend Web Service URL here (with or without /api at the end).
+// Example: "https://your-backend-name.onrender.com"
+// Leave empty ("") if running locally or hosting frontend+backend together.
+const RENDER_BACKEND_URL = "";
+// =============================================================================
 
-const API_BASE = window.API_BASE_URL || (isLocalDevPort
-  ? "http://127.0.0.1:8000/api"
-  : `${window.location.origin}/api`);
+function resolveApiBase() {
+  // 1. Explicitly configured backend URL
+  if (RENDER_BACKEND_URL && RENDER_BACKEND_URL.trim() !== "") {
+    let url = RENDER_BACKEND_URL.trim().replace(/\/+$/, "");
+    if (!url.endsWith("/api")) {
+      url += "/api";
+    }
+    return url;
+  }
+
+  // 2. Global window override or localStorage override (useful for runtime testing)
+  if (window.API_BASE_URL) return window.API_BASE_URL;
+  const storedUrl = localStorage.getItem("cemps_backend_url");
+  if (storedUrl) return storedUrl;
+
+  // 3. Local development ports (Live Server, Vite, file://)
+  const isLocalDevPort =
+    window.location.port === "5500" ||
+    window.location.port === "3000" ||
+    window.location.port === "5173" ||
+    window.location.protocol === "file:";
+
+  if (isLocalDevPort) {
+    return "http://127.0.0.1:8000/api";
+  }
+
+  // 4. Default: Same origin where app is hosted (e.g. Render Web Service serving both)
+  return `${window.location.origin}/api`;
+}
+
+const API_BASE = resolveApiBase();
 
 const api = {
   getHeaders(includeAuth = true) {

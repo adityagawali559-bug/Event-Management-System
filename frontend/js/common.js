@@ -257,7 +257,7 @@ function renderFooter() {
             <p class="small text-secondary mb-2">
               FastAPI REST Backend, PostgreSQL / SQLAlchemy ORM, Alembic migrations, Bootstrap 5 UI, and JWT RBAC.
             </p>
-            <a href="http://127.0.0.1:8000/docs" target="_blank" class="btn btn-outline-light btn-sm mt-1">
+            <a href="${typeof API_BASE !== 'undefined' ? API_BASE.replace(/\/api$/, '/docs') : '/docs'}" target="_blank" class="btn btn-outline-light btn-sm mt-1">
               <i class="bi bi-code-slash me-1"></i> Swagger API Docs
             </a>
           </div>
