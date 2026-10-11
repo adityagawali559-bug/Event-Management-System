@@ -35,7 +35,7 @@ def get_db():
 
 
 def init_db():
-    """Create all tables in the database if they don't already exist."""
+    """Create all tables in the database and seed default categories if missing."""
     # Import all models to ensure they are registered with Base.metadata
     from app.models import (
         user,
@@ -49,3 +49,29 @@ def init_db():
     )
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables verified/created successfully.")
+
+    # Auto-seed standard categories if missing
+    try:
+        db = SessionLocal()
+        default_categories = [
+            ("Cultural", "Music fests, arts, theater, and heritage celebrations."),
+            ("Education", "Academic workshops, tutoring sessions, and study circles."),
+            ("Technology", "Coding hackathons, AI seminars, and open source projects."),
+            ("Sports", "Community tournaments, marathons, yoga, and fitness meets."),
+            ("Environment", "Tree plantation drives, beach cleanups, and recycling summits."),
+            ("Health", "Blood donation camps, mental health webinars, and checkups."),
+            ("Social Service", "Food distribution, elderly care visits, and NGO outreach."),
+            ("Community", "Neighborhood townhalls, youth clubs, and networking circles."),
+            ("Workshop", "Hands-on skill building, robotics, craft, and leadership."),
+            ("Seminar", "Guest expert lectures, career guidance, and research talks."),
+        ]
+        for name, desc in default_categories:
+            exists = db.query(category.Category).filter(category.Category.name == name).first()
+            if not exists:
+                db.add(category.Category(name=name, description=desc))
+        db.commit()
+        db.close()
+        logger.info("Standard event categories verified/seeded.")
+    except Exception as e:
+        logger.warning(f"Could not auto-seed standard categories: {e}")
+

@@ -39,10 +39,23 @@
               <!-- Category & Poster URL -->
               <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                  <label for="category_id" class="form-label">Category <span class="text-danger">*</span></label>
-                  <select class="form-select" id="category_id" name="category_id" required>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="category_id" class="form-label mb-0">Category <span class="text-danger">*</span></label>
+                    <a href="javascript:void(0)" class="small text-primary text-decoration-none fw-semibold" id="toggle-custom-category-btn" onclick="toggleCustomCategory()">
+                      <i class="bi bi-plus-circle me-1"></i>+ Type Custom Category
+                    </a>
+                  </div>
+                  <select class="form-select" id="category_id" name="category_id" onchange="onCategorySelectChange(this)">
                     <option value="">Select Category...</option>
                   </select>
+                  <div id="custom-category-wrapper" class="mt-2 d-none">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bi bi-tag-fill text-primary"></i></span>
+                      <input type="text" class="form-control" id="custom_category_name" name="custom_category_name" placeholder="Type new category (e.g. Cultural, Arts, Tech)">
+                      <button class="btn btn-outline-secondary" type="button" onclick="cancelCustomCategory()">Back to list</button>
+                    </div>
+                    <div class="form-text small">Enter any category name and it will be assigned to your event automatically.</div>
+                  </div>
                 </div>
                 <div class="col-md-6">
                   <label for="image_url" class="form-label">Poster / Banner Image URL</label>
@@ -122,6 +135,36 @@
   <script src="../js/events.js"></script>
 
   <script>
+    function toggleCustomCategory() {
+      const wrapper = document.getElementById("custom-category-wrapper");
+      const select = document.getElementById("category_id");
+      const input = document.getElementById("custom_category_name");
+      wrapper.classList.remove("d-none");
+      select.value = "__custom__";
+      input.focus();
+    }
+
+    function cancelCustomCategory() {
+      const wrapper = document.getElementById("custom-category-wrapper");
+      const select = document.getElementById("category_id");
+      const input = document.getElementById("custom_category_name");
+      wrapper.classList.add("d-none");
+      input.value = "";
+      if (select.value === "__custom__") {
+        select.value = "";
+      }
+    }
+
+    function onCategorySelectChange(select) {
+      if (select.value === "__custom__") {
+        toggleCustomCategory();
+      } else {
+        document.getElementById("custom-category-wrapper")?.classList.add("d-none");
+        const input = document.getElementById("custom_category_name");
+        if (input) input.value = "";
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       renderNavbar("create-event");
       renderFooter();

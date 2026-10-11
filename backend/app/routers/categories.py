@@ -6,7 +6,7 @@ from app.database.database import get_db
 from app.models.category import Category
 from app.models.event import Event
 from app.schemas.category import CategoryCreate, CategoryUpdate, CategoryResponse
-from app.dependencies.auth import require_admin
+from app.dependencies.auth import require_admin, require_organizer
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
@@ -52,16 +52,21 @@ def get_category_by_id(category_id: int, db: Session = Depends(get_db)):
 def create_category(
     cat_in: CategoryCreate,
     db: Session = Depends(get_db),
-    _admin=Depends(require_admin),
+    _user=Depends(require_organizer),
 ):
-    """Create a new category (Admin only)."""
-    existing = db.query(Category).filter(func.lower(Category.name) == cat_in.name.lower().strip()).first()
+    """Create a new category (Organizer or Admin). Returns existing category if already present."""
+    name_clean = cat_in.name.strip()
+    existing = db.query(Category).filter(func.lower(Category.name) == name_clean.lower()).first()
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Category with this name already exists.",
+        count = db.query(func.count(Event.id)).filter(Event.category_id == existing.id).scalar() or 0
+        return CategoryResponse(
+            id=existing.id,
+            name=existing.name,
+            description=existing.description,
+            created_at=existing.created_at,
+            event_count=count,
         )
-    cat = Category(name=cat_in.name.strip(), description=cat_in.description)
+    cat = Category(name=name_clean, description=cat_in.description)
     db.add(cat)
     db.commit()
     db.refresh(cat)

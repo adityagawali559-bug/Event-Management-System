@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_, desc
+from sqlalchemy import or_, and_, desc, func
 from typing import Optional, List
 from datetime import date, datetime, timezone
 import math
@@ -163,7 +163,26 @@ def create_event(
     Organizers submit events which start in 'Pending Approval' or 'Draft'.
     Admins can directly publish or approve events.
     """
-    category = db.query(Category).filter(Category.id == event_in.category_id).first()
+    cat_id = event_in.category_id
+    if event_in.category_name and event_in.category_name.strip():
+        cat_name = event_in.category_name.strip()
+        existing_cat = db.query(Category).filter(func.lower(Category.name) == cat_name.lower()).first()
+        if existing_cat:
+            cat_id = existing_cat.id
+        else:
+            new_cat = Category(name=cat_name, description=f"{cat_name} community events")
+            db.add(new_cat)
+            db.commit()
+            db.refresh(new_cat)
+            cat_id = new_cat.id
+
+    if not cat_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Category ID or Category Name must be specified.",
+        )
+
+    category = db.query(Category).filter(Category.id == cat_id).first()
     if not category:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -183,7 +202,7 @@ def create_event(
     new_event = Event(
         title=event_in.title.strip(),
         description=event_in.description.strip(),
-        category_id=event_in.category_id,
+        category_id=cat_id,
         image_url=event_in.image_url,
         date=event_in.date,
         start_time=event_in.start_time,

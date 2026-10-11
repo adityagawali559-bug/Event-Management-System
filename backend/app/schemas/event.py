@@ -19,7 +19,8 @@ EventStatusLiteral = Literal[
 class EventBase(BaseModel):
     title: str = Field(..., min_length=3, max_length=200)
     description: str = Field(..., min_length=10)
-    category_id: int
+    category_id: Optional[int] = None
+    category_name: Optional[str] = None
     image_url: Optional[str] = None
     date: DateType
     start_time: TimeType
@@ -56,6 +57,7 @@ class EventUpdate(BaseModel):
 
 class EventResponse(EventBase):
     id: int
+    category_id: int
     organizer_id: int
     status: str
     created_at: datetime

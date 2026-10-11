@@ -164,16 +164,60 @@ const eventsModule = {
     const select = document.getElementById(selectId);
     if (!select) return;
 
+    const standardCategories = [
+      "Cultural", "Education", "Technology", "Sports", "Environment", 
+      "Health", "Social Service", "Community", "Workshop", "Seminar"
+    ];
+
     try {
       const cats = await api.get("/categories");
-      cats.forEach((cat) => {
+      const firstOpt = select.firstElementChild;
+      select.innerHTML = "";
+      if (firstOpt) select.appendChild(firstOpt);
+
+      const addedNames = new Set();
+
+      if (cats && cats.length > 0) {
+        cats.forEach((cat) => {
+          const opt = document.createElement("option");
+          opt.value = cat.id;
+          opt.textContent = `${cat.name} (${cat.event_count || 0})`;
+          select.appendChild(opt);
+          addedNames.add(cat.name.toLowerCase());
+        });
+      }
+
+      // Add any standard categories (like Cultural) if not yet returned by backend
+      standardCategories.forEach((stdName) => {
+        if (!addedNames.has(stdName.toLowerCase())) {
+          const opt = document.createElement("option");
+          opt.value = `name:${stdName}`;
+          opt.textContent = stdName;
+          select.appendChild(opt);
+        }
+      });
+
+      // If it's the create-event form category_id select, add the custom category option
+      if (selectId === "category_id") {
+        const customOpt = document.createElement("option");
+        customOpt.value = "__custom__";
+        customOpt.textContent = "+ Other / Type Custom Category...";
+        select.appendChild(customOpt);
+      }
+    } catch (err) {
+      console.warn("Could not load categories from API, displaying standard categories:", err);
+      standardCategories.forEach((stdName) => {
         const opt = document.createElement("option");
-        opt.value = cat.id;
-        opt.textContent = `${cat.name} (${cat.event_count || 0})`;
+        opt.value = `name:${stdName}`;
+        opt.textContent = stdName;
         select.appendChild(opt);
       });
-    } catch (err) {
-      console.error("Failed to load categories:", err);
+      if (selectId === "category_id") {
+        const customOpt = document.createElement("option");
+        customOpt.value = "__custom__";
+        customOpt.textContent = "+ Other / Type Custom Category...";
+        select.appendChild(customOpt);
+      }
     }
   },
 
@@ -441,10 +485,30 @@ const eventsModule = {
   async handleCreateEvent(eventForm) {
     if (!auth.requireRole(["organizer", "admin"])) return;
 
+    const rawCategoryVal = eventForm.category_id ? eventForm.category_id.value : "";
+    const customCategory = document.getElementById("custom_category_name")?.value.trim() || "";
+
+    let categoryId = null;
+    let categoryName = null;
+
+    if (customCategory) {
+      categoryName = customCategory;
+    } else if (rawCategoryVal.startsWith("name:")) {
+      categoryName = rawCategoryVal.replace("name:", "");
+    } else if (rawCategoryVal && rawCategoryVal !== "__custom__") {
+      categoryId = parseInt(rawCategoryVal, 10);
+    }
+
+    if (!categoryId && !categoryName) {
+      showToast("Please select a category or enter a custom category name.", "warning");
+      return;
+    }
+
     const payload = {
       title: eventForm.title.value.trim(),
       description: eventForm.description.value.trim(),
-      category_id: parseInt(eventForm.category_id.value, 10),
+      category_id: categoryId,
+      category_name: categoryName,
       image_url: eventForm.image_url.value.trim() || null,
       date: eventForm.date.value,
       start_time: eventForm.start_time.value,
