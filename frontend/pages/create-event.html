@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Event - CEMPS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="py-5">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="form-container">
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+              <div class="badge bg-primary-subtle text-primary p-3 rounded-circle fs-4">
+                <i class="bi bi-calendar-plus"></i>
+              </div>
+              <div>
+                <h3 class="fw-bold mb-0">Create New Community Event</h3>
+                <p class="text-muted small mb-0">Submit a project or activity for community participation</p>
+              </div>
+            </div>
+
+            <form id="create-event-form">
+              <!-- Title -->
+              <div class="mb-3">
+                <label for="title" class="form-label">Event Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="title" name="title" placeholder="e.g. Green Campus Tree Plantation Drive" minlength="3" required>
+              </div>
+
+              <!-- Category & Poster URL -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label for="category_id" class="form-label">Category <span class="text-danger">*</span></label>
+                  <select class="form-select" id="category_id" name="category_id" required>
+                    <option value="">Select Category...</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="image_url" class="form-label">Poster / Banner Image URL</label>
+                  <input type="url" class="form-control" id="image_url" name="image_url" placeholder="https://images.unsplash.com/...">
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="mb-3">
+                <label for="description" class="form-label">Event Description <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="description" name="description" rows="4" placeholder="Provide full details, agenda, requirements, and instructions for participants..." minlength="10" required></textarea>
+              </div>
+
+              <!-- Date & Times -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                  <label for="date" class="form-label">Event Date <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+                <div class="col-md-4">
+                  <label for="start_time" class="form-label">Start Time <span class="text-danger">*</span></label>
+                  <input type="time" class="form-control" id="start_time" name="start_time" required>
+                </div>
+                <div class="col-md-4">
+                  <label for="end_time" class="form-label">End Time <span class="text-danger">*</span></label>
+                  <input type="time" class="form-control" id="end_time" name="end_time" required>
+                </div>
+              </div>
+
+              <!-- Location & Capacity -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                  <label for="location" class="form-label">Location / Venue <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="location" name="location" placeholder="e.g. Campus Amphitheatre / Seminar Hall 2" required>
+                </div>
+                <div class="col-md-4">
+                  <label for="capacity" class="form-label">Capacity (Max Seats) <span class="text-danger">*</span></label>
+                  <input type="number" class="form-control" id="capacity" name="capacity" min="1" max="10000" placeholder="100" required>
+                </div>
+              </div>
+
+              <!-- Registration Deadline & Initial Status -->
+              <div class="row g-3 mb-4">
+                <div class="col-md-7">
+                  <label for="registration_deadline" class="form-label">Registration Deadline <span class="text-danger">*</span></label>
+                  <input type="datetime-local" class="form-control" id="registration_deadline" name="registration_deadline" required>
+                </div>
+                <div class="col-md-5">
+                  <label for="status" class="form-label">Initial Status</label>
+                  <select class="form-select" id="status" name="status">
+                    <option value="Pending Approval" selected>Submit for Approval</option>
+                    <option value="Draft">Save as Draft</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center">
+                <a href="manage-events.html" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" id="btn-create-submit" class="btn btn-primary fw-bold px-4">
+                  <span id="create-spinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
+                  Create & Submit Event
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/events.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      renderNavbar("create-event");
+      renderFooter();
+
+      if (!auth.requireRole(["organizer", "admin"])) return;
+
+      // Populate categories
+      await eventsModule.populateCategories("category_id");
+
+      // Set min date to today
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("date").min = today;
+
+      const form = document.getElementById("create-event-form");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btn-create-submit");
+        const spinner = document.getElementById("create-spinner");
+
+        btn.disabled = true;
+        spinner.classList.remove("d-none");
+
+        try {
+          await eventsModule.handleCreateEvent(form);
+        } catch (err) {
+          btn.disabled = false;
+          spinner.classList.add("d-none");
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+/* 
+  CEMPS - Responsive rules for Mobile, Tablet, and Desktop screens
+*/
+
+@media (max-width: 991.98px) {
+  .hero-title {
+    font-size: 2.2rem;
+  }
+  .hero-section {
+    padding: 50px 0 40px;
+    text-align: center;
+  }
+  .stat-card {
+    padding: 18px;
+    gap: 14px;
+  }
+  .stat-val {
+    font-size: 1.6rem;
+  }
+  .form-container {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .hero-title {
+    font-size: 1.85rem;
+  }
+  .hero-subtitle {
+    font-size: 1.05rem;
+  }
+  .card-img-top-event {
+    height: 160px;
+  }
+  .table-responsive-stack td {
+    display: block;
+    text-align: right;
+  }
+  .table-responsive-stack td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: 600;
+  }
+  #toast-container {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hero-buttons .btn {
+    width: 100%;
+  }
+}
