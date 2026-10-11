@@ -10,7 +10,7 @@
 // Backend Web Service URL here (with or without /api at the end).
 // Example: "https://your-backend-name.onrender.com"
 // Leave empty ("") if running locally or hosting frontend+backend together.
-const RENDER_BACKEND_URL = "";
+const RENDER_BACKEND_URL = "https://event-management-system-backend-p8u3.onrender.com";
 // =============================================================================
 
 function resolveApiBase() {
