@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore Events - CEMPS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="py-5">
+    <div class="container">
+      <div class="mb-4">
+        <h1 class="fw-bold">Explore Community Events</h1>
+        <p class="text-muted">Discover upcoming workshops, drives, and student initiatives in your area</p>
+      </div>
+
+      <!-- Filters & Search Toolbar -->
+      <div class="card card-custom p-4 mb-4">
+        <form id="filter-form" onsubmit="event.preventDefault(); eventsModule.loadEventsCatalog(1);">
+          <div class="row g-3 align-items-end">
+            <!-- Search Keyword -->
+            <div class="col-lg-4 col-md-6">
+              <label for="search-input" class="form-label">Search Event</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="search-input" placeholder="Title, keyword, or venue...">
+              </div>
+            </div>
+
+            <!-- Category -->
+            <div class="col-lg-3 col-md-6">
+              <label for="category-filter" class="form-label">Category</label>
+              <select class="form-select" id="category-filter">
+                <option value="">All Categories</option>
+              </select>
+            </div>
+
+            <!-- Location -->
+            <div class="col-lg-3 col-md-6">
+              <label for="location-filter" class="form-label">Location / Campus</label>
+              <input type="text" class="form-control" id="location-filter" placeholder="e.g. Auditorium, Lab">
+            </div>
+
+            <!-- Filter / Reset Buttons -->
+            <div class="col-lg-2 col-md-6 d-flex gap-2">
+              <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                <i class="bi bi-funnel-fill me-1"></i> Filter
+              </button>
+              <button type="button" class="btn btn-outline-secondary" onclick="eventsModule.resetFilters()" title="Reset Filters">
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Events Grid -->
+      <div class="row" id="events-grid">
+        <!-- Dynamically rendered by eventsModule.loadEventsCatalog() -->
+        <div class="col-12 text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+        </div>
+      </div>
+
+      <!-- Pagination Navigation -->
+      <div class="mt-4" id="pagination-container"></div>
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/events.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      renderNavbar("events");
+      renderFooter();
+
+      await eventsModule.populateCategories("category-filter");
+
+      // Check URL parameters for preset category filter
+      const urlParams = new URLSearchParams(window.location.search);
+      const catParam = urlParams.get("category_id");
+      if (catParam) {
+        document.getElementById("category-filter").value = catParam;
+      }
+
+      eventsModule.loadEventsCatalog(1);
+    });
+  </script>
+</body>
+</html>
